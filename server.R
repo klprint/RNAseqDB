@@ -62,12 +62,19 @@ quick.read = function(path){
 # Define server logic required to draw a histogram
 shinyServer(function(input, output) {
   print('Hello')
+  new.uploaded <- F
   # db.con <- reactive({con =  dbConnect(MySQL(), host = input$serverIP, user = 'root', password = input$passwd, dbname = 'RIPseq')})
 
-  output$dbtest <- renderDataTable({
-    if(input$passwd == ''){
+  is.logged.in <- eventReactive(input$login, {
+    if(input$serverIP == ''){
       return('')
     }else{
+      return('logged.in')
+    }
+  })
+  
+  output$dbtest <- renderDataTable({
+    if(is.logged.in() == 'logged.in'){
       con =  dbConnect(MySQL(), 
                        host = input$serverIP,
                        port = 3306,
@@ -100,28 +107,38 @@ shinyServer(function(input, output) {
     return(head(df))
   })
   
-  #observeEvent(input$inputFileUpload, {
-    observeEvent(input$inputFileUpload, {
-                  cat("bla \n")
-              })
+
+  observeEvent(input$inputFileUpload, {
     
 
-    # con =  dbConnect(MySQL(), 
-    #                   host = input$serverIP,
-    #                   port = 3306,
-    #                   user = 'RNAseqDBUser', 
-    #                   password = input$passwd, 
-    #                   dbname = 'RIPseq')
-    #   
-    # df <- data()
-    # df <- data.frame(GeneID = row.names(df),
-    #                    df)
-    # row.names(df) <- NULL
-    # dbWriteTable(conn = con, name = input$inputFileTitle, value = df)
-    # dbDisconnect(con)
+    con =  dbConnect(MySQL(),  # Connect to the database
+                      host = input$serverIP,
+                      port = 3306,
+                      user = 'RNAseqDBUser',
+                      password = input$passwd,
+                      dbname = 'RIPseq')
 
+    df <- data()
     
-  #})
+    table.name <- input$inputFileTitle
+    
+    for(not.allowed.char in c('\\.', ' ', '-')){  # Removes characters and replaces them with a '_'
+      table.name <- gsub(not.allowed.char, '_', table.name)
+    }
+
+    dbWriteTable(conn = con, name = table.name, value = df)
+    dbDisconnect(con)
+    new.uploaded <- T
+
+  })
+  
+  output$inputFileUploadSucc <- renderText({
+    if(new.uploaded){
+      return('Data Uploaded')
+    }else{
+      return('')
+    }
+  })
   
 # End server.R
 })

@@ -13,7 +13,7 @@ shinyUI(fluidPage(
     sidebarPanel(
        textInput('serverIP', label='Server IP Address:'),
        passwordInput('passwd', label= 'Enter DB password:'),
-       submitButton('Login')
+       actionButton('login', 'Login')
        
     ),
     
@@ -21,7 +21,7 @@ shinyUI(fluidPage(
     mainPanel(
       tabsetPanel(
         
-        tabPanel('Test',
+        tabPanel('Unique Genes',
           dataTableOutput('dbtest')
         ),
         
@@ -45,6 +45,8 @@ shinyUI(fluidPage(
                                     '.csv')),
                  br(''),
                  actionButton(inputId = 'inputFileUpload', label = 'Upload'),
+                 br(''),
+                 textOutput('inputFileUploadSucc'),
                  
                  tableOutput('inputFilePreview')
                  )
