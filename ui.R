@@ -1,23 +1,14 @@
-#
-# This is the user-interface definition of a Shiny web application. You can
-# run the application by clicking 'Run App' above.
-#
-# Find out more about building applications with Shiny here:
-# 
-#    http://shiny.rstudio.com/
-#
-
 library(shiny)
 library(RMySQL)
 library(DBI)
 
-# Define UI for application that draws a histogram
+
 shinyUI(fluidPage(
   
   # Application title
   titlePanel("RNAseqDB"),
   
-  # Sidebar with a slider input for number of bins 
+  #### Sidebar ####
   sidebarLayout(
     sidebarPanel(
        textInput('serverIP', label='Server IP Address:'),
@@ -26,7 +17,7 @@ shinyUI(fluidPage(
        
     ),
     
-    # Show a plot of the generated distribution
+    #### MAIN panel ####
     mainPanel(
       tabsetPanel(
         
@@ -34,7 +25,7 @@ shinyUI(fluidPage(
           dataTableOutput('dbtest')
         ),
         
-        
+        #### Input table ####
         tabPanel('New Data',
                  #tags$textarea(id="foo", rows=3, cols=40, "Default value"),
                  textInput('inputFileTitle', 'Title (no spaces, one word)'),
@@ -52,6 +43,8 @@ shinyUI(fluidPage(
                            accept=c('text/csv', 
                                     'text/comma-separated-values,text/plain', 
                                     '.csv')),
+                 br(''),
+                 actionButton(inputId = 'inputFileUpload', label = 'Upload'),
                  
                  tableOutput('inputFilePreview')
                  )

@@ -8,8 +8,10 @@
 #
 
 library(shiny)
-
+########################################################################################
 # ----------------------------- FUNCTIONS -----------------------------------
+########################################################################################
+
 quickmerge <- function(x, y){
   df            <- merge(x, y, by= "row.names", all.x= F, all.y= F)
   rownames(df)  <- df$Row.names
@@ -52,8 +54,11 @@ quick.read = function(path){
   return(df)
 }
 
-# ------------------------------------ Server -----------------------------------
 
+
+########################################################################################
+# ------------------------------------ Server -----------------------------------
+########################################################################################
 # Define server logic required to draw a histogram
 shinyServer(function(input, output) {
   print('Hello')
@@ -95,12 +100,28 @@ shinyServer(function(input, output) {
     return(head(df))
   })
   
-# End server.R
-})
+  #observeEvent(input$inputFileUpload, {
+    observeEvent(input$inputFileUpload, {
+                  cat("bla \n")
+              })
+    
 
-on.exit({
-  all_cons <- dbListConnections(MySQL())
-  for(con in all_cons){
-    dbDisconnect(con)
-  }
+    # con =  dbConnect(MySQL(), 
+    #                   host = input$serverIP,
+    #                   port = 3306,
+    #                   user = 'RNAseqDBUser', 
+    #                   password = input$passwd, 
+    #                   dbname = 'RIPseq')
+    #   
+    # df <- data()
+    # df <- data.frame(GeneID = row.names(df),
+    #                    df)
+    # row.names(df) <- NULL
+    # dbWriteTable(conn = con, name = input$inputFileTitle, value = df)
+    # dbDisconnect(con)
+
+    
+  #})
+  
+# End server.R
 })
