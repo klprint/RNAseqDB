@@ -65,6 +65,7 @@ shinyServer(function(input, output) {
   new.uploaded <- F
   # db.con <- reactive({con =  dbConnect(MySQL(), host = input$serverIP, user = 'root', password = input$passwd, dbname = 'RIPseq')})
 
+  #### Login Button ####
   is.logged.in <- eventReactive(input$login, {
     if(input$serverIP == ''){
       return('')
@@ -73,6 +74,7 @@ shinyServer(function(input, output) {
     }
   })
   
+  #### Show U.List ####
   output$dbtest <- renderDataTable({
     if(is.logged.in() == 'logged.in'){
       con =  dbConnect(MySQL(), 
@@ -108,6 +110,7 @@ shinyServer(function(input, output) {
   })
   
 
+  #### Upload new file ####
   observeEvent(input$inputFileUpload, {
     
 
@@ -127,6 +130,11 @@ shinyServer(function(input, output) {
     }
 
     dbWriteTable(conn = con, name = table.name, value = df)
+    
+    db.querryList <- paste('(','\'',table.name,'\'',',','\'',input$inputFileDesc,'\'',',','\'',input$inputFileExperimentType,'\'',')', sep = '' )
+    dbSendQuery(con, paste('INSERT INTO ExpDescr (Experiment, Description, ExpKind) VALUES',
+                           db.querryList, sep = ' '))
+    
     dbDisconnect(con)
     new.uploaded <- T
 
