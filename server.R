@@ -9,10 +9,98 @@
 
 library(shiny)
 
+# ----------------------------- FUNCTIONS -----------------------------------
+quickmerge <- function(x, y){
+  df            <- merge(x, y, by= "row.names", all.x= F, all.y= F)
+  rownames(df)  <- df$Row.names
+  df$Row.names  <- NULL
+  return(df)
+}
+
+quickmerge.multi <- function(...){
+  dfs <- list(...)
+  merged.df <- Reduce(quickmerge, dfs)
+  return(merged.df)
+}
+
+quick.read = function(path){
+  con <- file(path, "rb")
+  rawContent <- readLines(con, warn = F) # empty
+  close(con)  # close the connection to the file, to keep things tidy
+  
+  
+  expectedColumns <- length(gregexpr('\t', rawContent[1])[[1]])
+  delim <- "\t"
+  
+  indxToOffenders <-
+    sapply(rawContent, function(x)   # for each line in rawContent
+      length(gregexpr(delim, x)[[1]]) != expectedColumns   # count the number of delims and compare that number to expectedColumns
+    ) 
+  
+  df = read.table(text = rawContent[!indxToOffenders], sep = delim, header=T)
+  
+  df = df[!duplicated(df[,1]), ]
+  
+  print(paste('Removed lines: ',length(rawContent)-(nrow(df)+1)))
+  
+  df = data.frame(row.names = df[,1],
+                  df[,2:ncol(df)]
+  )
+  
+  #print(head(df))
+  #print(nrow(df))
+  return(df)
+}
+
+# ------------------------------------ Server -----------------------------------
+
 # Define server logic required to draw a histogram
 shinyServer(function(input, output) {
+  print('Hello')
+  # db.con <- reactive({con =  dbConnect(MySQL(), host = input$serverIP, user = 'root', password = input$passwd, dbname = 'RIPseq')})
+
+  output$dbtest <- renderDataTable({
+    if(input$passwd == ''){
+      return('')
+    }else{
+      con =  dbConnect(MySQL(), 
+                       host = input$serverIP,
+                       port = 3306,
+                       user = 'RNAseqDBUser', 
+                       password = input$passwd, 
+                       dbname = 'RIPseq')
+      
+      out.df <- dbGetQuery(con, 'SELECT * FROM UList;')
+      dbDisconnect(con)
+      mes <- paste('Number of fetched rows: ', nrow(out.df), sep='')
+      print(mes)
+      return(out.df)
+    }
+  })
   
-db.con <- reactive({con =  dbConnect(MySQL(), user = 'root', password = input$passwd, dbname = 'RIPseq')})
+  
+  data <- reactive({
+    inFile <- input$inputFile
+    if(is.null(inFile)){return(NULL)
+      }else{
+        data <- quick.read(inFile$datapath)
+        
+        return(data)
+      }
+  })
+  
+  output$inputFilePreview <- renderTable({
+    df <- data()
+    print(head(df))
+    return(head(df))
+  })
+  
+# End server.R
+})
 
-
+on.exit({
+  all_cons <- dbListConnections(MySQL())
+  for(con in all_cons){
+    dbDisconnect(con)
+  }
 })
