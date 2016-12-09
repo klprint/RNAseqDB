@@ -75,7 +75,8 @@ shinyServer(function(input, output) {
   })
   
   #### Show U.List ####
-  output$dbtest <- renderDataTable({
+  
+  ulist <- reactive({
     if(is.logged.in() == 'logged.in'){
       con =  dbConnect(MySQL(), 
                        host = input$serverIP,
@@ -89,6 +90,18 @@ shinyServer(function(input, output) {
       mes <- paste('Number of fetched rows: ', nrow(out.df), sep='')
       print(mes)
       return(out.df)
+    }
+  })
+  
+  output$dbtest <- renderDataTable({
+    return(ulist())
+  })
+  
+  output$loginSuc <- renderText({
+    if(nrow(ulist()) > 0){
+      return('Login successful!')
+    }else{
+      return('Please login')
     }
   })
   
@@ -131,9 +144,20 @@ shinyServer(function(input, output) {
 
     dbWriteTable(conn = con, name = table.name, value = df)
     
-    db.querryList <- paste('(','\'',table.name,'\'',',','\'',input$inputFileDesc,'\'',',','\'',input$inputFileExperimentType,'\'',')', sep = '' )
-    dbSendQuery(con, paste('INSERT INTO ExpDescr (Experiment, Description, ExpKind) VALUES',
+    db.querryList <- paste('(',
+                           '\'',table.name,'\'',',',
+                           '\'',input$inputFileDesc,'\'',',',
+                           '\'',input$inputFileExperimentType,'\'',',',
+                           '\'',input$inputFilecolIDs,'\'',
+                           ')',
+                           sep = '' )
+    
+    dbClearResult(
+      dbSendQuery(con, paste('INSERT INTO ExpDescr (Experiment, Description, ExpKind, ColIDs) VALUES',
                            db.querryList, sep = ' '))
+    )
+    
+    #dbWriteTable(conn = con, name = 'ExpDescr', cbind(NA, table.name, input$inputFileDesc, input$inputFileExperimentType), row.names=F, append = T)
     
     dbDisconnect(con)
     new.uploaded <- T
