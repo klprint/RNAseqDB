@@ -13,7 +13,8 @@ shinyUI(fluidPage(
     sidebarPanel(
        textInput('serverIP', label='Server IP Address:'),
        passwordInput('passwd', label= 'Enter DB password:'),
-       actionButton('login', 'Login')
+       actionButton('login', 'Login'),
+       textOutput('loginSuc')
        
     ),
     
@@ -21,34 +22,37 @@ shinyUI(fluidPage(
     mainPanel(
       tabsetPanel(
         
+        #### Unique Genes List ####
         tabPanel('Unique Genes',
           dataTableOutput('dbtest')
         ),
         
         #### Input table ####
         tabPanel('New Data',
-                 #tags$textarea(id="foo", rows=3, cols=40, "Default value"),
                  textInput('inputFileTitle', 'Title (no spaces, one word)'),
                  
                  radioButtons('inputFileExperimentType', 'Type of experiment:',
                               choices = c(RNAseq = 'rnaseq',
                                           RIPseq = 'ripseq')),
                  
-                 p('Description:'),
-                 tags$textarea(id = 'inputFileDesc', rows=10, cols=40),
+                 h3('Description:'),
+                 tags$textarea(id = 'inputFileDesc', rows=20, cols=70, 'Description:\n\n\nExperimentalist:\n\n\nNotes:\n'),
                  
                  br(''),
+                 
+                 textInput('inputFilecolIDs', 'Column data sets', placeholder = 'RIPseq: elu,elu,ft,ft / RNAseq: a,a,b,b,...'),
                  
                  fileInput('inputFile', 'Choose Read-Count File',
                            accept=c('text/csv', 
                                     'text/comma-separated-values,text/plain', 
                                     '.csv')),
+                 
+                 tableOutput('inputFilePreview'),
+                 
                  br(''),
                  actionButton(inputId = 'inputFileUpload', label = 'Upload'),
                  br(''),
-                 textOutput('inputFileUploadSucc'),
-                 
-                 tableOutput('inputFilePreview')
+                 textOutput('inputFileUploadSucc')
                  )
                 
         #End tabsetPanel
